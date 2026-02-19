@@ -26,6 +26,15 @@ __int64 __fastcall LdrpProcessWork(__int64 a1, char a2)
 }
 ```
 
+## Qt5 vs PySide6 IDA 9.2 migration
+
+> [!NOTE]
+> For more information, see https://docs.hex-rays.com/user-guide/plugins/migrating-pyqt5-code-to-pyside6.
+
+By default, the plugin uses `PySide6`.
+
+If you need to force the legacy PyQt5 shim (`<9.2`), set `IDAPYTHON_USE_PYQT5_SHIM=1` in your IDA Python environment before launching IDA.
+
 # Thanks To
 
 This plugin is just a python rewrite of the original C++ implementation from @nihilus here: https://github.com/nihilus/IDA_FunctionStringAssociate_PlugIn

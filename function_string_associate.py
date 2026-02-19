@@ -5,8 +5,27 @@ import ida_bytes
 import ida_funcs
 import ida_auto
 import ida_kernwin
+import os
 import time
-from PyQt5 import QtWidgets
+
+
+def _env_flag(name):
+    value = os.getenv(name)
+    if value is None:
+        return False
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
+
+# Optionally use PyQt5 shim if the environment variable is set, otherwise default to PySide6.
+# Otherwise we wouldn't use IDA <9.2.
+if _env_flag("IDAPYTHON_USE_PYQT5_SHIM"):
+    from PyQt5 import QtWidgets
+
+    QT_BINDING = "PyQt5"
+else:
+    from PySide6 import QtWidgets
+
+    QT_BINDING = "PySide6"
 
 MAX_LINE_STR_COUNT = 10
 MAX_LABEL_STR = 60
@@ -17,8 +36,10 @@ MIN_STR_SIZE = 4
 # if False, append new strings to the existing comment.
 g_replace_comments = False
 
+
 def filter_whitespace(s):
     return "".join(ch if " " <= ch <= "~" else " " for ch in s).strip()
+
 
 def process_function(ea, comment_counter):
     f = ida_funcs.get_func(ea)
@@ -60,7 +81,7 @@ def process_function(ea, comment_counter):
             needed = len(val) + 2  # for quotes
             if free_size < needed:
                 break
-            new_text += f"\"{val}\""
+            new_text += f'"{val}"'
             if i + 1 < len(str_list):
                 free_size = MAX_COMMENT - len(new_text) - 1
                 if free_size > 2:
@@ -83,13 +104,15 @@ def process_function(ea, comment_counter):
             idc.set_func_cmt(ea, new_text, repeatable=True)
         comment_counter[0] += 1
 
+
 # -----------------------------------------------------------------------
-# PyQt dialog for "Replace or Append"
+# Qt dialog for "Replace or Append"
 # -----------------------------------------------------------------------
 class ReplaceOrAppendDialog(QtWidgets.QDialog):
     """
     A simple modal dialog with a checkbox to choose between REPLACE and APPEND.
     """
+
     def __init__(self, func_count, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Function String Associate")
@@ -123,17 +146,18 @@ class ReplaceOrAppendDialog(QtWidgets.QDialog):
 
 def show_qt_dialog(func_count):
     """
-    Shows the PyQt dialog. Returns:
+    Shows the Qt dialog. Returns:
       True  => user chose "OK" with checkbox checked (REPLACE)
       False => user chose "OK" with checkbox unchecked (APPEND)
       None  => user canceled
     """
     dlg = ReplaceOrAppendDialog(func_count)
-    result = dlg.exec_()
+    result = dlg.exec() if hasattr(dlg, "exec") else dlg.exec_()
     if result == QtWidgets.QDialog.Accepted:
         return dlg.should_replace()
     else:
         return None
+
 
 class MyPlugin(idaapi.plugin_t):
     flags = idaapi.PLUGIN_UNL
@@ -149,6 +173,7 @@ class MyPlugin(idaapi.plugin_t):
 
     def run(self, arg):
         idaapi.msg("[FuncStrPlugin] Plugin invoked!\n")
+        idaapi.msg(f"[FuncStrPlugin] Qt binding: {QT_BINDING}\n")
 
         if not ida_auto.auto_is_ok():
             ida_kernwin.warning("Auto analysis must finish before running this plugin!")
@@ -156,12 +181,12 @@ class MyPlugin(idaapi.plugin_t):
             return
 
         funcs = list(idautils.Functions())
-        
+
         choice = show_qt_dialog(len(funcs))
         if choice is None:
             idaapi.msg(" - Canceled -\n")
             return
-        
+
         global g_replace_comments
         g_replace_comments = choice
 
@@ -176,7 +201,9 @@ class MyPlugin(idaapi.plugin_t):
         for idx, func_ea in enumerate(funcs):
             process_function(func_ea, comment_count)
             if idx % 100 == 0:
-                ida_kernwin.replace_wait_box(f"Processing function {idx+1}/{len(funcs)}")
+                ida_kernwin.replace_wait_box(
+                    f"Processing function {idx + 1}/{len(funcs)}"
+                )
                 if ida_kernwin.user_cancelled():
                     idaapi.msg("* Aborted *\n")
                     break
@@ -184,7 +211,9 @@ class MyPlugin(idaapi.plugin_t):
         ida_kernwin.hide_wait_box()
 
         elapsed = time.time() - start_time
-        idaapi.msg(f"Done: Generated {comment_count[0]} string comments in {elapsed:.3f} seconds.\n")
+        idaapi.msg(
+            f"Done: Generated {comment_count[0]} string comments in {elapsed:.3f} seconds.\n"
+        )
         idaapi.msg("--------------------------------------------------\n")
         idaapi.refresh_idaview_anyway()
 
@@ -192,5 +221,15 @@ class MyPlugin(idaapi.plugin_t):
         # Called when the plugin is about to be unloaded (if flags=PLUGIN_UNL).
         idaapi.msg("[FuncStrPlugin] term() called.\n")
 
+
 def PLUGIN_ENTRY():
-    return MyPlugin()
+    return MyPlugin()  # type: ignore[call-arg]
+
+
+if __name__ == "__main__":
+    # This allows running the plugin directly from the command line for testing.
+    # In IDA, it will be loaded as a plugin and PLUGIN_ENTRY() will be called.
+    plugin = MyPlugin()
+    plugin.init()
+    plugin.run(0)
+    plugin.term()

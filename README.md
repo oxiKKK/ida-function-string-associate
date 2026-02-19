@@ -1,4 +1,4 @@
-Function String Associate for IDA 9.0
+Function String Associate for IDA 9.X
 ---
 
 This plugin lets you auto-generate function comments using the string literals used inside of that function. Example:

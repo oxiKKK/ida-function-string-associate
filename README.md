@@ -2,7 +2,7 @@ Function String Associate for IDA 9.X
 ---
 
 <p align="center">
-  <img src=".img/logo.png" alt="Function String Associate logo" width="720">
+  <img src=".img/logo.png" alt="Function String Associate logo" width="320">
 </p>
 
 This plugin lets you auto-generate function comments using the string literals used inside of that function. Example:

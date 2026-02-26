@@ -1,0 +1,34 @@
+{
+  "IDAMetadataDescriptorVersion": 1,
+  "plugin": {
+    "name": "function-string-associate",
+    "version": "1.0.0",
+    "entryPoint": "function_string_associate.py",
+    "idaVersions": [
+      "9.0",
+      "9.1",
+      "9.2",
+      "9.3"
+    ],
+    "description": "Auto-generates function comments from referenced string literals",
+    "license": "UNLICENSED",
+    "categories": [
+      "decompilation"
+    ],
+    "urls": {
+      "repository": "https://github.com/oxiKKK/ida-function-string-associate"
+    },
+    "logoPath": ".img/logo.png",
+    "authors": [
+      {
+        "name": "oxiKKK",
+        "email": "oxsscze@gmail.com"
+      }
+    ],
+    "keywords": [
+      "strings",
+      "comments",
+      "function-string-associate"
+    ]
+  }
+}

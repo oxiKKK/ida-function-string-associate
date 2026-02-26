@@ -5,27 +5,21 @@ import ida_bytes
 import ida_funcs
 import ida_auto
 import ida_kernwin
-import os
 import time
 
 
-def _env_flag(name):
-    value = os.getenv(name)
-    if value is None:
-        return False
-    return value.strip().lower() in ("1", "true", "yes", "on")
+def _load_qt_widgets():
+    if idaapi.IDA_SDK_VERSION >= 920:
+        from PySide6 import QtWidgets as _QtWidgets
+
+        return _QtWidgets, "PySide6"
+
+    from PyQt5 import QtWidgets as _QtWidgets
+
+    return _QtWidgets, "PyQt5"
 
 
-# Optionally use PyQt5 shim if the environment variable is set, otherwise default to PySide6.
-# Otherwise we wouldn't use IDA <9.2.
-if _env_flag("IDAPYTHON_USE_PYQT5_SHIM"):
-    from PyQt5 import QtWidgets
-
-    QT_BINDING = "PyQt5"
-else:
-    from PySide6 import QtWidgets
-
-    QT_BINDING = "PySide6"
+QtWidgets, QT_BINDING = _load_qt_widgets()
 
 MAX_LINE_STR_COUNT = 10
 MAX_LABEL_STR = 60

@@ -31,9 +31,7 @@ __int64 __fastcall LdrpProcessWork(__int64 a1, char a2)
 > [!NOTE]
 > For more information, see https://docs.hex-rays.com/user-guide/plugins/migrating-pyqt5-code-to-pyside6.
 
-By default, the plugin uses `PySide6`.
-
-If you need to force the legacy PyQt5 shim (`<9.2`), set `IDAPYTHON_USE_PYQT5_SHIM=1` in your IDA Python environment before launching IDA.
+The plugin uses `PySide6` on IDA `>=9.2` and `PyQt5` on older versions, based on `idaapi.IDA_SDK_VERSION`.
 
 # Thanks To
 
